@@ -1,23 +1,29 @@
-package com.kader.foxycode_casestudy
+package com.kader.foxycode_casestudy.Fragment
 
 import android.os.Bundle
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.RadioGroup
 import androidx.fragment.app.Fragment
-import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.DatabaseReference
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.kader.foxycode_casestudy.Adapter.CategoryAdapter
+import com.kader.foxycode_casestudy.Models.CategoryModel
+import com.kader.foxycode_casestudy.R
+
 
 class CategoryFragment : Fragment() {
 
     private lateinit var databaseReference: DatabaseReference
     private lateinit var categoryAdapter: CategoryAdapter
+
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -26,13 +32,14 @@ class CategoryFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_category, container, false)
 
         // categoryAdapter'ı başlat
-        categoryAdapter = CategoryAdapter(emptyList())
+        categoryAdapter = CategoryAdapter()
 
         // RecyclerView'in özelliklerini ayarla
         val recyclerView: RecyclerView = view.findViewById(R.id.recyclerViewCategories)
-        recyclerView.layoutManager = LinearLayoutManager(requireContext(), RecyclerView.VERTICAL, false)
-        recyclerView.setHasFixedSize(false)
-        recyclerView.itemAnimator = null
+        val spanCount = 2
+        val layoutManager = GridLayoutManager(context, spanCount)
+        recyclerView.layoutManager = layoutManager
+        recyclerView.setHasFixedSize(true)
         recyclerView.adapter = categoryAdapter
         Log.d("CategoryFragment", "onCreateView is called")
         return view
@@ -40,6 +47,20 @@ class CategoryFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+
+        val radioGroup: RadioGroup = view.findViewById(R.id.radioGroupLanguage)
+
+        radioGroup.setOnCheckedChangeListener { group, checkedId ->
+            val selectedLanguage = when (checkedId) {
+                R.id.radioButtonTr -> "TÜRKÇE"
+                R.id.radiButtonEn -> "ENGLISH"
+                else -> "Default Language" // Varsayılan dil
+            }
+
+            // Dil seçildiğinde yapılacak işlemler
+            // Örneğin, RecyclerView'yi güncelle
+            updateRecyclerView(selectedLanguage)
+        }
 
         Log.d("CategoryFragment", "onViewCreated is called")
 
@@ -80,4 +101,29 @@ class CategoryFragment : Fragment() {
             }
         })
     }
+    private fun updateRecyclerView(selectedLanguage: String) {
+
+        Log.d("CategoryFragment", "Selected Language: $selectedLanguage")
+        categoryAdapter.setSelectedLanguage(selectedLanguage)
+
+        val categories = categoryAdapter.getCategories()
+
+        // Dil seçimine göre verileri güncelle
+        for (category in categories) {
+            category.apply {
+                if (selectedLanguage == "TÜRKÇE") {
+                    setTitleTurkish()
+                } else if(selectedLanguage=="ENGLISH") {
+                    setTitleEnglish()
+                }
+            }
+        }
+
+        // RecyclerView'yi güncelle
+        categoryAdapter.notifyDataSetChanged()
+
+        Log.d("CategoryFragment", "RecyclerView updated. Item count: ${categoryAdapter.itemCount}")
+    }
+
+
 }

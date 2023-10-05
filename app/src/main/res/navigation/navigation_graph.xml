@@ -7,7 +7,7 @@
 
     <fragment
         android:id="@+id/categoriesFragment"
-        android:name="com.kader.foxycode_casestudy.CategoryFragment"
+        android:name="com.kader.foxycode_casestudy.Fragment.CategoryFragment"
         android:label="fragment_categories"
         tools:layout="@layout/fragment_category" >
         <action
@@ -16,7 +16,7 @@
     </fragment>
     <fragment
         android:id="@+id/wordsFragment"
-        android:name="com.kader.foxycode_casestudy.WordFragment"
+        android:name="com.kader.foxycode_casestudy.Fragment.WordFragment"
         android:label="fragment_words"
         tools:layout="@layout/fragment_word" >
         <action
