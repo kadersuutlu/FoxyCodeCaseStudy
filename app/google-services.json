@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "727578366547",
+    "project_id": "foxycodecasestudy",
+    "storage_bucket": "foxycodecasestudy.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:727578366547:android:f58c08582372354705aca6",
+        "android_client_info": {
+          "package_name": "com.kader.foxycode_casestudy"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBsr7do_FriwTUdWI_tC2ikuPKUEcU5dzA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
