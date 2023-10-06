@@ -18,12 +18,12 @@ import com.kader.foxycode_casestudy.Adapter.CategoryAdapter
 import com.kader.foxycode_casestudy.Models.CategoryModel
 import com.kader.foxycode_casestudy.R
 
-
 class CategoryFragment : Fragment() {
 
     private lateinit var databaseReference: DatabaseReference
     private lateinit var categoryAdapter: CategoryAdapter
 
+    private var selectedCategoryId: String? = null
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
@@ -31,17 +31,31 @@ class CategoryFragment : Fragment() {
     ): View? {
         val view = inflater.inflate(R.layout.fragment_category, container, false)
 
-        // categoryAdapter'ı başlat
-        categoryAdapter = CategoryAdapter()
 
-        // RecyclerView'in özelliklerini ayarla
+        categoryAdapter = CategoryAdapter { clickedCategory ->
+            selectedCategoryId = clickedCategory.getCategoryId()
+            val wordFragment = WordFragment()
+
+
+            val bundle = Bundle()
+            bundle.putString("categoryId", selectedCategoryId)
+            wordFragment.arguments = bundle
+
+
+            parentFragmentManager.beginTransaction()
+                .replace(R.id.fragmentcontainer, wordFragment)
+                .addToBackStack(null)
+                .commit()
+        }
+
+
         val recyclerView: RecyclerView = view.findViewById(R.id.recyclerViewCategories)
         val spanCount = 2
         val layoutManager = GridLayoutManager(context, spanCount)
         recyclerView.layoutManager = layoutManager
         recyclerView.setHasFixedSize(true)
         recyclerView.adapter = categoryAdapter
-        Log.d("CategoryFragment", "onCreateView is called")
+
         return view
     }
 
@@ -57,42 +71,30 @@ class CategoryFragment : Fragment() {
                 else -> "Default Language" // Varsayılan dil
             }
 
-            // Dil seçildiğinde yapılacak işlemler
-            // Örneğin, RecyclerView'yi güncelle
+
             updateRecyclerView(selectedLanguage)
         }
 
-        Log.d("CategoryFragment", "onViewCreated is called")
-
-        databaseReference = FirebaseDatabase.getInstance("https://foxycodecasestudy-default-rtdb.europe-west1.firebasedatabase.app").getReference("categories")
-
-        Log.d("CategoryFragment", "Database reference: $databaseReference")
-
-        // Debug log
-        Log.d("CategoryFragment", "onViewCreated is called")
+        databaseReference =
+            FirebaseDatabase.getInstance("https://foxycodecasestudy-default-rtdb.europe-west1.firebasedatabase.app")
+                .getReference("categories")
 
         databaseReference.addValueEventListener(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 val categories = mutableListOf<CategoryModel>()
 
-                // Debug log
-                Log.d("CategoryFragment", "onDataChange is called")
-
                 for (categorySnapshot in dataSnapshot.children) {
                     val enName = categorySnapshot.child("en").getValue(String::class.java)
                     val trName = categorySnapshot.child("tr").getValue(String::class.java)
 
-                    //Log.d("CategoryFragment", "enName: $enName, trName: $trName")
-
                     if (enName != null && trName != null) {
-                        val category = CategoryModel(enName, trName)
+                        val categoryId = categorySnapshot.key
+                        val category = CategoryModel(enName, trName, emptyList(),categoryId)
                         categories.add(category)
                     }
                 }
 
                 categoryAdapter.setCategories(categories)
-
-                Log.d("CategoryFragment", "RecyclerView updated. Item count: ${categoryAdapter.itemCount}")
             }
 
             override fun onCancelled(databaseError: DatabaseError) {
@@ -101,29 +103,25 @@ class CategoryFragment : Fragment() {
             }
         })
     }
-    private fun updateRecyclerView(selectedLanguage: String) {
 
-        Log.d("CategoryFragment", "Selected Language: $selectedLanguage")
+    private fun updateRecyclerView(selectedLanguage: String) {
         categoryAdapter.setSelectedLanguage(selectedLanguage)
 
         val categories = categoryAdapter.getCategories()
 
-        // Dil seçimine göre verileri güncelle
+
         for (category in categories) {
             category.apply {
                 if (selectedLanguage == "TÜRKÇE") {
                     setTitleTurkish()
-                } else if(selectedLanguage=="ENGLISH") {
+                } else {
                     setTitleEnglish()
                 }
             }
         }
 
-        // RecyclerView'yi güncelle
+
         categoryAdapter.notifyDataSetChanged()
-
-        Log.d("CategoryFragment", "RecyclerView updated. Item count: ${categoryAdapter.itemCount}")
     }
-
-
 }
+
