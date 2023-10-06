@@ -50,6 +50,7 @@ class WordFragment : Fragment() {
                     .getReference("categories")
                     .child(categoryId)
                     .child("words")
+
             Log.d("WordFragment", "Database reference: $databaseReference")
 
 
@@ -74,35 +75,32 @@ class WordFragment : Fragment() {
     }
 
     private fun fetchWords() {
-
+        // Veritabanındaki kelimeleri dinle
         databaseReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
                 Log.d("WordFragment", "OnDataChange.")
                 if (dataSnapshot.exists()) {
+                    // Clear the list only if new data is available
+                    words.clear()
+
                     for (wordSnapshot in dataSnapshot.children) {
-                        Log.d("WordFragment", "Word: ${wordSnapshot.value}")
+                        val id = wordSnapshot.key
+                        val enWord = wordSnapshot.child("en").getValue(String::class.java)
+                        val trWord = wordSnapshot.child("tr").getValue(String::class.java)
+
+                        if (id != null && enWord != null && trWord != null) {
+                            val word = WordModel(id, enWord, trWord)
+                            words.add(word)
+                        }
                     }
 
+                    Log.d("WordFragment", "Words list size: ${words.size}")
+
                     if (words.isNotEmpty()) {
+                        showWord(currentWordIndex)
 
-                        words.clear()
-
-                        for (wordSnapshot in dataSnapshot.children) {
-                            val id = wordSnapshot.key
-                            val enWord = wordSnapshot.child("en").getValue(String::class.java)
-                            val trWord = wordSnapshot.child("tr").getValue(String::class.java)
-
-                            if (id != null && enWord != null && trWord != null) {
-                                val word = WordModel(id, enWord, trWord)
-                                words.add(word)
-                            }
-                        }
-
-                        Log.d("WordFragment", "Words list size: ${words.size}")
-
-
-                        if (words.isNotEmpty()) {
-                            showWord(currentWordIndex)
+                        textViewWord.setOnClickListener {
+                            showTurkishWord(currentWordIndex)
                         }
                     }
                 } else {
@@ -110,13 +108,13 @@ class WordFragment : Fragment() {
                 }
             }
 
-
             override fun onCancelled(databaseError: DatabaseError) {
                 val errorMessage = databaseError.message
                 Log.e("WordFragment", "FirebaseError: $errorMessage")
             }
         })
     }
+
 
 
     private fun showWord(index: Int) {
@@ -145,9 +143,15 @@ class WordFragment : Fragment() {
         }
     }
 
-
-
-
+    private fun showTurkishWord(index: Int) {
+        if (index in 0 until words.size) {
+            val word = words[index]
+            textViewWord.text = word.tr
+            Log.d("WordFragment", "Showing Turkish word: ${textViewWord.text}")
+        } else {
+            Log.e("WordFragment", "Invalid word index: $index")
+        }
+    }
 
 
     private fun showPreviousWord() {
